@@ -27,6 +27,7 @@
 #include "console/console.h"
 #include "services/gap/ble_svc_gap.h"
 #include "bleprph.h"
+#include "servo.h"
 
 #if CONFIG_EXAMPLE_EXTENDED_ADV
 static uint8_t ext_adv_pattern_1[] = {
@@ -628,6 +629,18 @@ void app_main(void)
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK(ret);
+
+    ret = servo_mcpwm_init();
+    ESP_ERROR_CHECK(ret);
+    if (ret == ESP_OK)
+    {
+        printf("MCPWM initialized successfully.\n");
+    }
+    else
+    {
+        printf("Failed to initialize MCPWM.\n");
+        return;
+    }
 
     ret = nimble_port_init();
     if (ret != ESP_OK)
