@@ -180,7 +180,19 @@ bleprph_advertise(void)
     const char *name;
 #endif
     int rc;
-
+    // if (ble_gap_adv_active(0))
+    // {
+    //     MODLOG_DFLT(INFO, "Advertising already active, stopping first...\n");
+    //     rc = ble_gap_adv_stop();
+    //     if (rc != 0)
+    //     {
+    //         MODLOG_DFLT(ERROR, "Failed to stop advertising; rc=%d\n", rc);
+    //         return;
+    //     }
+    //     vTaskDelay(pdMS_TO_TICKS(100));
+    // }
+    ble_gap_adv_stop();
+    vTaskDelay(pdMS_TO_TICKS(50));
     /**
      *  Set the advertisement data included in our advertisements:
      *     o Flags (indicates advertisement type and other general info).
@@ -212,10 +224,13 @@ bleprph_advertise(void)
     fields.name_is_complete = 1;
 #endif
 
-    fields.uuids16 = (ble_uuid16_t[]){
-        BLE_UUID16_INIT(GATT_SVR_SVC_ALERT_UUID)};
-    fields.num_uuids16 = 1;
-    fields.uuids16_is_complete = 1;
+    /* Advertise custom 128-bit service UUID */
+    static const ble_uuid128_t custom_svc_uuid =
+        BLE_UUID128_INIT(0x2d, 0x71, 0xa2, 0x59, 0xb4, 0x58, 0xc8, 0x12,
+                         0x99, 0x99, 0x43, 0x95, 0x12, 0x2f, 0x46, 0x59);
+    fields.uuids128 = (ble_uuid128_t[]){custom_svc_uuid};
+    fields.num_uuids128 = 1;
+    fields.uuids128_is_complete = 1;
 
     rc = ble_gap_adv_set_fields(&fields);
     if (rc != 0)

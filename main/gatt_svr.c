@@ -154,12 +154,13 @@ gatt_svc_access(uint16_t conn_handle, uint16_t attr_handle,
         {
             rc = os_mbuf_append(ctxt->om,
                                 &gatt_svr_chr_val,
-                                sizeof(gatt_svr_chr_val));
+                                gatt_svr_chr_len); // use the actual command/input length
             return rc == 0 ? 0 : BLE_ATT_ERR_INSUFFICIENT_RES;
         }
         goto unknown;
 
     case BLE_GATT_ACCESS_OP_WRITE_CHR:
+        uint16_t len;
         if (conn_handle != BLE_HS_CONN_HANDLE_NONE)
         {
             MODLOG_DFLT(INFO, "Characteristic write; conn_handle=%d attr_handle=%d",
@@ -230,7 +231,7 @@ gatt_svc_access(uint16_t conn_handle, uint16_t attr_handle,
         {
             rc = os_mbuf_append(ctxt->om,
                                 &gatt_svr_dsc_val,
-                                sizeof(gatt_svr_chr_val));
+                                sizeof(gatt_svr_dsc_val));
             return rc == 0 ? 0 : BLE_ATT_ERR_INSUFFICIENT_RES;
         }
         goto unknown;
@@ -285,6 +286,12 @@ void gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg)
 int gatt_svr_init(void)
 {
     int rc;
+    static bool initialised = false;
+
+    if (initialised)
+    {
+        return 0;
+    }
 
     ble_svc_gap_init();
     ble_svc_gatt_init();
@@ -303,7 +310,8 @@ int gatt_svr_init(void)
     }
 
     /* Setting a value for the read-only descriptor */
+    gatt_svr_chr_len = 0;
     gatt_svr_dsc_val = 0x99;
-
+    initialised = true;
     return 0;
 }
